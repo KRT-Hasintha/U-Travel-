@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Tour Plan</title>
+    <style>
+        body {
+            margin:0;
+            font-family: Arial;
+            background:#f0f0f0;
+            padding:20px;
+        }
+
+        h2{
+            margin-top:0;
+            color:#333;
+        }
+
+        #cartList {
+            /*display: grid;*/
+            /*grid-template-columns: repeat(auto-fill,minmax(250px,1fr));*/
+            /*gap:20px;*/
+            list-style:none;
+            padding:0;
+        }
+
+        .cart-card {
+            background:white;
+            border:2px solid #ccc;
+            padding:15px;
+            border-radius:10px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1);
+            transition:0.3s;
+        }
+
+        .cart-card:hover {
+            transform: scale(1.03);
+            box-shadow:0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .cart-card b{
+            display:block;
+            margin-bottom:5px;
+            color:#333;
+            font-size:16px;
+        }
+
+        .cart-card p{
+            margin:2px 0;
+            color:#555;
+            font-size:14px;
+        }
+
+        button#requestBtn {
+            margin-top:20px;
+            padding:10px 20px;
+            background:#333;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+            font-size:16px;
+        }
+
+        button#requestBtn:hover{
+            background:#555;
+        }
+
+    </style>
+</head>
+<body>
+
+<h2>My Tour Plan</h2>
+
+<ul id="cartList"></ul>
+
+<button id="requestBtn">Request Driver</button>
+
+<script>
+    const token = localStorage.getItem("token");
+    const base = "http://localhost:8080/api/v1/rides";
+
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    const cartList = document.getElementById("cartList");
+
+    function renderCart() {
+        cartList.innerHTML = "";
+        if(cart.length === 0){
+            cartList.innerHTML = "<p>Your cart is empty.</p>";
+            return;
+        }
+
+        cart.forEach(p=>{
+            const li = document.createElement("li");
+            li.className = "cart-card";
+            li.innerHTML = `
+                <b>${p.name}</b>
+
+            `;
+            cartList.appendChild(li);
+        });
+    }
+
+    renderCart();
+
+    document.getElementById("requestBtn").onclick = function(){
+        if(cart.length === 0){
+            alert("Cart is empty ⚠️");
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(pos=>{
+            fetch(`${base}/request?lat=${pos.coords.latitude}&lng=${pos.coords.longitude}`,{
+                method:"POST",
+                headers:{
+                    "Authorization":"Bearer "+token
+                }
+            })
+                .then(()=>{
+                    alert("Driver Request Sent ✅");
+                    localStorage.removeItem("cart");
+                    cart = [];
+                    renderCart();
+                })
+                .catch(err => console.error(err));
+        });
+    }
+
+</script>
+
+</body>
+</html>

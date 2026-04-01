@@ -1,0 +1,281 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <title>Auth</title>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<h2>Login</h2>-->
+<!--<input type="text" id="loginUsername" placeholder="Username"><br>-->
+<!--<input type="password" id="loginPassword" placeholder="Password"><br>-->
+<!--<button onclick="login()">Login</button>-->
+
+<!--<hr>-->
+
+<!--<h2>Register</h2>-->
+<!--<input type="text" id="regUsername" placeholder="Username"><br>-->
+<!--<input type="password" id="regPassword" placeholder="Password"><br>-->
+
+<!--<label for="regRole">Select Role:</label>-->
+<!--<select id="regRole">-->
+<!--    <option value="USER">User - Get services from app</option>-->
+<!--    <option value="PROVIDER">Provider - Offer services via app</option>-->
+<!--</select><br>-->
+<!--<button onclick="register()">Register</button>-->
+
+<!--<p style="text-align:center; margin-top:10px;">-->
+<!--    Already have an account? <a href="login.html">Login Here</a>-->
+<!--</p>-->
+
+<!--<script>-->
+<!--    function register(){-->
+<!--        fetch("http://localhost:8080/api/v1/auth/signup",{-->
+<!--            method:"POST",-->
+<!--            headers:{"Content-Type":"application/json"},-->
+<!--            body:JSON.stringify({-->
+<!--                username: regUsername.value,-->
+<!--                password: regPassword.value,-->
+<!--                role: regRole.value // dropdown selected value-->
+<!--            })-->
+<!--        })-->
+<!--            .then(res=>res.json())-->
+<!--            .then(data=>{-->
+<!--                alert(data.message);-->
+<!--                if(data.code === 200){-->
+<!--                    window.location.href = "home.html"; // redirect to login after success-->
+<!--                }-->
+<!--            })-->
+<!--            .catch(err=>{-->
+<!--                console.error(err);-->
+<!--                alert("Server error");-->
+<!--            });-->
+<!--    }-->
+
+
+<!--    // AIzaSyBDFfiXFeKcF2nARdPNGOlp1IP8GQSKVis-->
+<!--    // api key   AIzaSyBDFfiXFeKcF2nARdPNGOlp1IP8GQSKVis-->
+<!--    function login(){-->
+<!--        fetch("http://localhost:8080/api/v1/auth/signin",{-->
+<!--            method:"POST",-->
+<!--            headers:{"Content-Type":"application/json"},-->
+<!--            body:JSON.stringify({-->
+<!--                username:loginUsername.value,-->
+<!--                password:loginPassword.value-->
+<!--            })-->
+<!--        })-->
+<!--            .then(async res => {-->
+<!--                const data = await res.json();-->
+
+
+<!--                if (!res.ok) {-->
+<!--                    alert(data.message);-->
+<!--                    return;-->
+<!--                }-->
+
+<!--                localStorage.setItem("token", data.data.access_token);-->
+<!--                window.location.href="home.html";-->
+<!--            })-->
+<!--            .catch(err => {-->
+<!--                console.error(err);-->
+<!--                alert("Server error");-->
+<!--            });-->
+<!--    }-->
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth UI</title>
+
+    <style>
+        body{
+            margin:0;
+            font-family:Arial;
+            background:#e6e6e6;
+        }
+
+        .container{
+            display:flex;
+            height:100vh;
+        }
+
+        /* LEFT SIDE */
+        .left{
+            width:50%;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+        }
+
+        .card{
+            background:#fff;
+            padding:30px;
+            width:300px;
+            border-radius:10px;
+            box-shadow:0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2{
+            text-align:center;
+            color:#444;
+        }
+
+        input, select{
+            width:100%;
+            padding:10px;
+            margin:8px 0;
+            border:1px solid #ccc;
+            border-radius:5px;
+        }
+
+        button{
+            width:100%;
+            padding:10px;
+            background:#777;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#555;
+        }
+
+        /* RIGHT SIDE */
+        .right{
+            width:50%;
+            background:linear-gradient(135deg,#999,#555);
+            color:white;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            cursor:pointer;
+            transition:0.5s;
+        }
+
+        .right:hover{
+            background:linear-gradient(135deg,#888,#444);
+        }
+
+        .right h1{
+            font-size:40px;
+        }
+
+        /* hidden */
+        .hidden{
+            display:none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <!-- LEFT -->
+    <div class="left">
+
+        <!-- LOGIN -->
+        <div id="loginBox" class="card">
+            <h2>Login</h2>
+
+            <input type="text" id="loginUsername" placeholder="Username">
+            <input type="password" id="loginPassword" placeholder="Password">
+
+            <button onclick="login()">Login</button>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="registerBox" class="card hidden">
+            <h2>Register</h2>
+
+            <input type="text" id="regUsername" placeholder="Username">
+            <input type="password" id="regPassword" placeholder="Password">
+
+            <select id="regRole">
+                <option value="USER">User</option>
+                <option value="PROVIDER">Provider</option>
+            </select>
+
+            <button onclick="register()">Register</button>
+        </div>
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="right" onclick="toggleForm()">
+        <h1 id="toggleText">Register</h1>
+        <p>Click to switch</p>
+    </div>
+
+</div>
+
+<script>
+
+    let isLogin = true;
+
+    function toggleForm(){
+        if(isLogin){
+            loginBox.classList.add("hidden");
+            registerBox.classList.remove("hidden");
+            toggleText.innerText = "Login";
+        }else{
+            registerBox.classList.add("hidden");
+            loginBox.classList.remove("hidden");
+            toggleText.innerText = "Register";
+        }
+        isLogin = !isLogin;
+    }
+
+    /* LOGIN */
+    function login(){
+        fetch("http://localhost:8080/api/v1/auth/signin",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                username:loginUsername.value,
+                password:loginPassword.value
+            })
+        })
+            .then(async res=>{
+                const data = await res.json();
+
+                if(!res.ok){
+                    alert(data.message);
+                    return;
+                }
+
+                localStorage.setItem("token", data.data.access_token);
+                window.location.href="home.html";
+            })
+            .catch(()=>alert("Server error"));
+    }
+
+    /* REGISTER */
+    function register(){
+        fetch("http://localhost:8080/api/v1/auth/signup",{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({
+                username:regUsername.value,
+                password:regPassword.value,
+                role:regRole.value
+            })
+        })
+            .then(res=>res.json())
+            .then(data=>{
+                alert(data.message);
+            })
+            .catch(()=>alert("Server error"));
+    }
+
+</script>
+
+</body>
+</html>

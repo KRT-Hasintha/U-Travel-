@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ride System</title>
+</head>
+<body>
+
+<h2> Ride System</h2>
+
+<!-- USER PANEL -->
+<h3>Request a Ride</h3>
+<button onclick="requestRide()">Request Ride From Current Location</button>
+
+<hr>
+
+<!-- DRIVER PANEL -->
+<h3>Driver Dashboard</h3>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>Ride ID</th>
+        <th>Pickup</th>
+        <th>Drop</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="rideTable"></tbody>
+</table>
+
+<script>
+
+    const BASE_URL = "http://localhost:8080/api/v1";
+
+    // ✅ get token
+    function getHeaders(){
+        const token = localStorage.getItem("token");
+        return {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+        };
+    }
+
+    // ================= USER =================
+
+    function requestRide(){
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+
+                const location = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+
+                fetch(BASE_URL + "/rides/request", {
+                    method: "POST",
+                    headers: getHeaders(), // ✅ auto token
+                    body: JSON.stringify(location)
+                })
+                    .then(res => {
+                        if(res.status === 403){
+                            alert(" Unauthorized (Check USER token)");
+                            return;
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        if(data){
+                            alert(" Ride Requested ID: " + data.id);
+                        }
+                    });
+
+            });
+        } else {
+            alert("Geolocation not supported");
+        }
+    }
+
+    // ================= DRIVER =================
+
+    // function loadRideRequests(){
+    //     fetch(BASE_URL + "/rides/requests", {
+    //         headers: getHeaders()
+    //     })
+    //         .then(res => {
+    //             if(res.status === 403){
+    //                 console.log("❌ PROVIDER token needed");
+    //                 return [];
+    //             }
+    //             return res.json();
+    //         })
+    //         .then(rides => {
+    //
+    //             const tbody = document.getElementById("rideTable");
+    //             tbody.innerHTML = "";
+    //
+    //             rides.forEach(ride => {
+    //                 const tr = document.createElement("tr");
+    //
+    //                 tr.innerHTML = `
+    //             <td>${ride.id}</td>
+    //             <td>${ride.pickupLat}, ${ride.pickupLng}</td>
+    //             <td>${ride.dropLat ?? "-"}, ${ride.dropLng ?? "-"}</td>
+    //             <td>
+    //                 <button onclick="acceptRide(${ride.id})">Accept</button>
+    //             </td>
+    //         `;
+    //
+    //                 tbody.appendChild(tr);
+    //             });
+    //         });
+    // }
+
+    function acceptRide(rideId){
+        fetch(BASE_URL + `/rides/accept?rideId=${rideId}&vehicleId=1`, {
+            method: "PUT",
+            headers: getHeaders()
+        })
+            .then(res => {
+                if(res.status === 403){
+                    alert(" PROVIDER token required");
+                    return;
+                }
+                return res.json();
+            })
+            .then(() => {
+                alert(" Ride Accepted");
+                loadRideRequests();
+            });
+    }
+
+    // auto refresh
+    loadRideRequests();
+    setInterval(loadRideRequests, 5000);
+
+    function loadRideRequests(){
+        fetch("http://localhost:8080/api/v1/rides/requests", {
+            headers: getHeaders()
+        })
+            .then(res => res.json())
+            .then(rides => {
+
+                const tbody = document.getElementById("rideTable");
+                tbody.innerHTML = "";
+
+                // ✅ Only REQUESTED rides show
+                rides.forEach(ride => {
+
+                    if(ride.status !== "REQUESTED") return;
+
+                    const tr = document.createElement("tr");
+
+                    tr.innerHTML = `
+                <td>${ride.id}</td>
+                <td>${ride.pickupLat}, ${ride.pickupLng}</td>
+                <td>${ride.dropLat ?? "-"}, ${ride.dropLng ?? "-"}</td>
+                <td>
+                    <button onclick="acceptRide(${ride.id})">Accept</button>
+                </td>
+            `;
+
+                    tbody.appendChild(tr);
+                });
+            });
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Villas</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--<h2>Add Villa (PROVIDER)</h2>-->
+<!--<input id="villaName" placeholder="Name"><br>-->
+<!--<input id="villaLocation" placeholder="Location"><br>-->
+<!--<input id="villaDistrict" placeholder="District"><br>-->
+<!--<input id="villaPrice" placeholder="Price"><br>-->
+<!--<button onclick="addVilla()">Add Villa</button>-->
+
+<!--<hr>-->
+
+<!--<h2>Search Villas by District (USER)</h2>-->
+<!--<input id="searchDistrict" placeholder="District">-->
+<!--<button onclick="searchVillas()">Search</button>-->
+
+<!--<div id="villaResults"></div>-->
+
+<!--<script>-->
+<!--    const token = localStorage.getItem("token");-->
+<!--    const villaBase = "http://localhost:8080/api/v1/villas";-->
+
+<!--    function addVilla() {-->
+<!--        const name = document.getElementById("villaName").value;-->
+<!--        const location = document.getElementById("villaLocation").value;-->
+<!--        const district = document.getElementById("villaDistrict").value;-->
+<!--        const price = parseFloat(document.getElementById("villaPrice").value);-->
+
+<!--        fetch(villaBase, {-->
+<!--            method: "POST",-->
+<!--            headers: {-->
+<!--                "Content-Type": "application/json",-->
+<!--                "Authorization": "Bearer " + token-->
+<!--            },-->
+<!--            body: JSON.stringify({name, location, district, price})-->
+<!--        })-->
+<!--            .then(res => res.json())-->
+<!--            .then(data => alert("Villa Added!"))-->
+<!--            .catch(err => console.error(err));-->
+<!--    }-->
+
+<!--    function searchVillas() {-->
+<!--        const district = document.getElementById("searchDistrict").value;-->
+
+<!--        fetch(`${villaBase}/by-district?district=${district}`, {-->
+<!--            method: "GET",-->
+<!--            headers: {-->
+<!--                "Authorization": "Bearer " + token-->
+<!--            }-->
+<!--        })-->
+<!--            .then(res => res.json())-->
+<!--            .then(data => {-->
+<!--                const container = document.getElementById("villaResults");-->
+<!--                container.innerHTML = "";-->
+<!--                data.forEach(v => {-->
+<!--                    const div = document.createElement("div");-->
+<!--                    div.innerText = `${v.name} - ${v.location} - ${v.district} - $${v.price}`;-->
+<!--                    container.appendChild(div);-->
+<!--                });-->
+<!--            })-->
+<!--            .catch(err => console.error(err));-->
+<!--    }-->
+<!--</script>-->
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Villas</title>
+    <style>
+        body {
+            margin:0;
+            font-family: Arial;
+            background:#f0f0f0;
+        }
+
+        .wrapper{
+            display:flex;
+        }
+
+        /* SIDEBAR */
+        .sidebar{
+            width:220px;
+            background:linear-gradient(180deg,#999,#555);
+            color:white;
+            padding:20px;
+            height:100vh;
+        }
+
+        .sidebar h2{
+            text-align:center;
+        }
+
+        .menu-item{
+            margin:12px 0;
+            padding:10px;
+            border-radius:5px;
+            cursor:pointer;
+            background:rgba(255,255,255,0.1);
+        }
+
+        .menu-item:hover{
+            background:rgba(255,255,255,0.2);
+        }
+
+        /* MAIN */
+        .main{
+            flex:1;
+            padding:20px;
+        }
+
+        h2 {
+            margin-top:0;
+        }
+
+        input, button {
+            padding:8px;
+            margin:5px 0;
+            border-radius:5px;
+            border:1px solid #ccc;
+        }
+
+        button {
+            cursor:pointer;
+            background:#333;
+            color:white;
+            border:none;
+        }
+
+        button:hover {
+            background:#555;
+        }
+
+        /* VILLA CARDS */
+        #villaResults {
+            display:grid;
+            grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+            gap:20px;
+            margin-top:20px;
+        }
+
+        .villa-card {
+            background:white;
+            padding:15px;
+            border-radius:10px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+            transition:0.3s;
+        }
+
+        .villa-card:hover {
+            transform: scale(1.05);
+        }
+
+        .villa-card h3 {
+            margin:5px 0;
+            color:#333;
+        }
+
+        .villa-card p {
+            margin:2px 0;
+            color:#555;
+        }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="sidebar">
+        <h2>Menu</h2>
+        <div class="menu-item" onclick="go('dashboard.html')">Dashboard</div>
+        <div class="menu-item" onclick="go('vehicle.html')">Vehicles</div>
+        <div class="menu-item" onclick="go('ride.html')">Rides</div>
+        <div class="menu-item" onclick="go('places.html')">Places</div>
+        <div class="menu-item" onclick="go('add-location.html')">Add Place</div>
+    </div>
+
+    <div class="main">
+        <h2>Add Villa (PROVIDER)</h2>
+        <input id="villaName" placeholder="Name"><br>
+        <input id="villaLocation" placeholder="Location"><br>
+        <input id="villaDistrict" placeholder="District"><br>
+        <input id="villaPrice" placeholder="Price"><br>
+        <button onclick="addVilla()">Add Villa</button>
+
+        <hr>
+
+        <h2>Search Villas by District (USER)</h2>
+        <input id="searchDistrict" placeholder="District">
+        <button onclick="searchVillas()">Search</button>
+
+        <div id="villaResults"></div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("token");
+    const villaBase = "http://localhost:8080/api/v1/villas";
+
+    function addVilla() {
+        const name = document.getElementById("villaName").value;
+        const location = document.getElementById("villaLocation").value;
+        const district = document.getElementById("villaDistrict").value;
+        const price = parseFloat(document.getElementById("villaPrice").value);
+
+        fetch(villaBase, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({name, location, district, price})
+        })
+            .then(res => res.json())
+            .then(data => {
+                alert("Villa Added!");
+                loadVillas(); // auto reload villas after add
+            })
+            .catch(err => console.error(err));
+    }
+
+    function searchVillas() {
+        const district = document.getElementById("searchDistrict").value;
+
+        fetch(`${villaBase}/by-district?district=${district}`, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => renderVillas(data))
+            .catch(err => console.error(err));
+    }
+
+    function loadVillas() {
+        fetch(villaBase, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        })
+            .then(res => res.json())
+            .then(data => renderVillas(data))
+            .catch(err => console.error(err));
+    }
+
+    function renderVillas(villas) {
+        const container = document.getElementById("villaResults");
+        container.innerHTML = "";
+        villas.forEach(v => {
+            const div = document.createElement("div");
+            div.className = "villa-card";
+            div.innerHTML = `
+                <h3>${v.name}</h3>
+                <p><strong>Location:</strong> ${v.location}</p>
+                <p><strong>District:</strong> ${v.district}</p>
+                <p><strong>Price:</strong> $${v.price}</p>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function go(page) {
+        window.location.href = page;
+    }
+
+    // AUTO LOAD ALL VILLAS
+    loadVillas();
+</script>
+
+</body>
+</html>

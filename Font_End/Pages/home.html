@@ -1,0 +1,380 @@
+
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <title>Dashboard</title>-->
+
+<!--    <style>-->
+<!--        body{-->
+<!--            font-family: Arial;-->
+<!--            background:#f5f5f5;-->
+<!--            margin:0;-->
+<!--        }-->
+
+<!--        .navbar{-->
+<!--            background:#222;-->
+<!--            color:white;-->
+<!--            padding:15px;-->
+<!--            display:flex;-->
+<!--            justify-content:space-between;-->
+<!--        }-->
+
+<!--        .container{-->
+<!--            display:flex;-->
+<!--            gap:20px;-->
+<!--            padding:20px;-->
+<!--            flex-wrap: wrap;-->
+<!--        }-->
+
+<!--        .card{-->
+<!--            background:white;-->
+<!--            padding:20px;-->
+<!--            border-radius:10px;-->
+<!--            width:220px;-->
+<!--            cursor:pointer;-->
+<!--            box-shadow:0 2px 5px rgba(0,0,0,0.2);-->
+<!--            transition:0.3s;-->
+<!--            text-align:center;-->
+<!--        }-->
+
+<!--        .card:hover{-->
+<!--            transform:scale(1.05);-->
+<!--        }-->
+
+<!--        .stat{-->
+<!--            font-size:28px;-->
+<!--            font-weight:bold;-->
+<!--            color:#333;-->
+<!--        }-->
+
+<!--        button{-->
+<!--            padding:10px;-->
+<!--            margin-top:10px;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+
+<!--<div class="navbar">-->
+<!--    <h2>U Travel Dashboard</h2>-->
+<!--    <button onclick="logout()">Logout</button>-->
+<!--</div>-->
+
+<!--<div class="container">-->
+
+<!--    &lt;!&ndash; USERS &ndash;&gt;-->
+<!--    <div class="card">-->
+<!--        <h3>Users</h3>-->
+<!--        <div class="stat" id="userCount">0</div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; PROVIDERS &ndash;&gt;-->
+<!--    <div class="card">-->
+<!--        <h3>Providers</h3>-->
+<!--        <div class="stat" id="providerCount">0</div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; LOCATIONS &ndash;&gt;-->
+<!--    <div class="card">-->
+<!--        <h3>Locations</h3>-->
+<!--        <div class="stat" id="locationCount">0</div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; VILLAS &ndash;&gt;-->
+<!--    <div class="card">-->
+<!--        <h3>Villas</h3>-->
+<!--        <div class="stat" id="villaCount">0</div>-->
+<!--    </div>-->
+
+<!--    &lt;!&ndash; VEHICLES &ndash;&gt;-->
+<!--    <div class="card">-->
+<!--        <h3>Vehicles</h3>-->
+<!--        <div class="stat" id="vehicleCount">0</div>-->
+<!--    </div>-->
+
+<!--</div>-->
+
+<!--<hr>-->
+
+<!--<div class="container">-->
+
+<!--    <div class="card" onclick="go('vehicle.html')">-->
+<!--        <h3>Vehicles</h3>-->
+<!--        <p>Manage vehicles</p>-->
+<!--    </div>-->
+
+<!--    <div class="card" onclick="go('ride.html')">-->
+<!--        <h3>Rides</h3>-->
+<!--        <p>Request / Accept rides</p>-->
+<!--    </div>-->
+
+<!--    <div class="card" onclick="go('villas.html')">-->
+<!--        <h3>Villas</h3>-->
+<!--        <p>Find villas</p>-->
+<!--    </div>-->
+
+<!--    <div class="card" onclick="go('places.html')">-->
+<!--        <h3>Places</h3>-->
+<!--        <p>Explore places</p>-->
+<!--    </div>-->
+
+<!--    <div class="card" onclick="go('add-location.html')">-->
+<!--        <h3>Add Place</h3>-->
+<!--        <p>Add new location</p>-->
+<!--    </div>-->
+
+<!--</div>-->
+
+<!--<script>-->
+
+<!--    const token = localStorage.getItem("token");-->
+
+<!--    function loadStats(){-->
+
+<!--        fetch("http://localhost:8080/api/v1/dashboard/stats",{-->
+<!--            headers:{-->
+<!--                "Authorization":"Bearer "+token-->
+<!--            }-->
+<!--        })-->
+<!--            .then(res=>res.json())-->
+<!--            .then(data=>{-->
+<!--                console.log(data);-->
+
+<!--                document.getElementById("userCount").innerText = data.users || 0;-->
+<!--                document.getElementById("providerCount").innerText = data.providers || 0;-->
+<!--                document.getElementById("locationCount").innerText = data.locations || 0;-->
+<!--                document.getElementById("villaCount").innerText = data.villas || 0;-->
+<!--                document.getElementById("vehicleCount").innerText = data.vehicles || 0;-->
+<!--            });-->
+<!--    }-->
+
+<!--    function go(page){-->
+<!--        window.location.href = page;-->
+<!--    }-->
+
+<!--    function logout(){-->
+<!--        localStorage.removeItem("token");-->
+<!--        window.location.href="login.html";-->
+<!--    }-->
+
+<!--    // AUTO LOAD-->
+<!--    loadStats();-->
+
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+
+    <style>
+        body{
+            margin:0;
+            font-family:Arial;
+            background:#e6e6e6;
+        }
+
+        /* LAYOUT */
+        .wrapper{
+            display:flex;
+            height:100vh;
+        }
+
+        /* SIDEBAR */
+        .sidebar{
+            width:220px;
+            background:linear-gradient(180deg,#999,#555);
+            color:white;
+            padding:20px;
+        }
+
+        .sidebar h2{
+            text-align:center;
+        }
+
+        .menu-item{
+            margin:12px 0;
+            padding:10px;
+            border-radius:5px;
+            cursor:pointer;
+            background:rgba(255,255,255,0.1);
+        }
+
+        .menu-item:hover{
+            background:rgba(255,255,255,0.2);
+        }
+
+        /* MAIN */
+        .main{
+            flex:1;
+            display:flex;
+            flex-direction:column;
+        }
+
+        /* NAVBAR */
+        .navbar{
+            background:#333;
+            color:white;
+            padding:15px;
+            display:flex;
+            justify-content:space-between;
+        }
+
+        .navbar button{
+            background:#777;
+            border:none;
+            padding:8px 15px;
+            color:white;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        .navbar button:hover{
+            background:#555;
+        }
+
+        /* STATS */
+        .stats{
+            display:flex;
+            gap:20px;
+            padding:20px;
+            flex-wrap:wrap;
+        }
+
+        .card{
+            background:white;
+            padding:20px;
+            border-radius:10px;
+            width:180px;
+            text-align:center;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+        }
+
+        .stat{
+            font-size:26px;
+            font-weight:bold;
+            color:#444;
+        }
+
+        /* GRID */
+        .grid{
+            padding:20px;
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+            gap:20px;
+        }
+
+        .grid-card{
+            background:white;
+            padding:25px;
+            border-radius:10px;
+            text-align:center;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <!-- LEFT MENU -->
+    <div class="sidebar">
+        <h2>Menu</h2>
+
+        <div class="menu-item" onclick="go('vehicle.html')"> Vehicles</div>
+<!--        <div class="menu-item" onclick="go('ride.html')"> Rides</div>-->
+        <div class="menu-item" onclick="go('villas.html')"> Villas</div>
+        <div class="menu-item" onclick="go('places.html')"> Places</div>
+        <div class="menu-item" onclick="go('add-location.html')"> Add Place</div>
+    </div>
+
+    <!-- RIGHT CONTENT -->
+    <div class="main">
+
+        <!-- NAV -->
+        <div class="navbar">
+            <h2>U Travel Dashboard</h2>
+            <button onclick="logout()">Logout</button>
+        </div>
+
+        <!-- STATS -->
+        <div class="stats">
+            <div class="card">
+                <h3>Users</h3>
+                <div class="stat" id="userCount">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Providers</h3>
+                <div class="stat" id="providerCount">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Locations</h3>
+                <div class="stat" id="locationCount">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Villas</h3>
+                <div class="stat" id="villaCount">0</div>
+            </div>
+
+            <div class="card">
+                <h3>Vehicles</h3>
+                <div class="stat" id="vehicleCount">0</div>
+            </div>
+        </div>
+
+        <!-- GRID (optional future content area) -->
+        <div class="grid">
+            <div class="grid-card">
+                <h3>Welcome </h3>
+                <p>Select an option from the left menu</p>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    const token = localStorage.getItem("token");
+
+    function loadStats(){
+        fetch("http://localhost:8080/api/v1/dashboard/stats",{
+            headers:{
+                "Authorization":"Bearer "+token
+            }
+        })
+            .then(res=>res.json())
+            .then(data=>{
+                userCount.innerText = data.users || 0;
+                providerCount.innerText = data.providers || 0;
+                locationCount.innerText = data.locations || 0;
+                villaCount.innerText = data.villas || 0;
+                vehicleCount.innerText = data.vehicles || 0;
+            });
+    }
+
+    function go(page){
+        window.location.href = page;
+    }
+
+    function logout(){
+        localStorage.removeItem("token");
+        window.location.href="login.html";
+    }
+
+    loadStats();
+
+</script>
+
+</body>
+</html>

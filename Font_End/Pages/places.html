@@ -1,0 +1,279 @@
+<!--<!DOCTYPE html>-->
+<!--<html>-->
+<!--<head>-->
+<!--    <title>Places</title>-->
+
+<!--    <style>-->
+<!--        body{font-family:Arial;}-->
+
+<!--        .card{-->
+<!--            display:flex;-->
+<!--            align-items:center;-->
+<!--            justify-content:space-between;-->
+<!--            border:1px solid #ccc;-->
+<!--            padding:10px;-->
+<!--            margin:10px;-->
+<!--            cursor:pointer;-->
+<!--            transition:0.2s;-->
+<!--            width: 500px;-->
+<!--        }-->
+
+<!--        .card:hover{-->
+<!--            background:#f5f5f5;-->
+<!--            transform:scale(1.02);-->
+<!--        }-->
+
+<!--        img{width:80px;height:60px;}-->
+
+<!--        .cart-btn{-->
+<!--            position:fixed;-->
+<!--            bottom:20px;-->
+<!--            right:20px;-->
+<!--            padding:15px;-->
+<!--            background:black;-->
+<!--            color:white;-->
+<!--            border-radius:50%;-->
+<!--        }-->
+<!--    </style>-->
+
+<!--</head>-->
+<!--<body>-->
+
+<!--<h2>Tour Places</h2>-->
+
+<!--<div id="list"></div>-->
+
+<!--<button class="cart-btn" onclick="goCart()">🛒</button>-->
+
+<!--<script>-->
+
+<!--    const base="http://localhost:8080/api/locations";-->
+<!--    const token = localStorage.getItem("token");-->
+
+<!--    let cart = JSON.parse(localStorage.getItem("cart") || "[]");-->
+
+<!--    const listDiv = document.getElementById("list");-->
+
+<!--    // LOAD LOCATIONS-->
+<!--    fetch(base,{-->
+<!--        headers:{-->
+<!--            "Authorization":"Bearer "+token-->
+<!--        }-->
+<!--    })-->
+<!--        .then(res=>res.json())-->
+<!--        .then(data=>{-->
+<!--            console.log(data);-->
+
+<!--            listDiv.innerHTML = "";-->
+
+<!--            data.forEach(p=>{-->
+
+<!--                listDiv.innerHTML += `-->
+<!--        <div class="card" onclick="addToCart(${p.id}, '${p.name}')">-->
+
+<!--            <img src="${p.imageUrl || 'https://via.placeholder.com/80'}">-->
+
+<!--            <div style="flex:1; margin-left:10px;">-->
+<!--                <b>Name :${p.name}</b><br>-->
+<!--                <b>Location/Distric :</b>${p.district}<br>-->
+<!--                <b>Discription :</b>${p.description || ''}-->
+<!--            </div>-->
+
+<!--            <button onclick="event.stopPropagation(); addToCart(${p.id}, '${p.name}')">-->
+<!--                +-->
+<!--            </button>-->
+
+<!--        </div>`;-->
+<!--            });-->
+<!--        });-->
+
+<!--    // ADD TO CART-->
+<!--    function addToCart(id,name){-->
+
+<!--        // duplicate avoid-->
+<!--        const exists = cart.find(item => item.id === id);-->
+
+<!--        if(exists){-->
+<!--            alert("Already added ⚠️");-->
+<!--            return;-->
+<!--        }-->
+
+<!--        cart.push({id,name});-->
+<!--        localStorage.setItem("cart",JSON.stringify(cart));-->
+
+<!--        alert(name + " Added to Cart ✅");-->
+<!--    }-->
+
+<!--    // GO CART-->
+<!--    function goCart(){-->
+<!--        window.location.href="cart.html";-->
+<!--    }-->
+
+<!--</script>-->
+
+<!--</body>-->
+<!--</html>-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tour Places</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            background: #f0f0f0;
+            margin:0;
+            padding:20px;
+        }
+
+        h2{
+            margin-top:0;
+        }
+
+        /* GRID CONTAINER */
+        #list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        /* CARD STYLE */
+        .card {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #ccc;
+            border-radius:10px;
+            background:white;
+            overflow: hidden;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .card:hover {
+            transform: scale(1.03);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding:10px;
+            flex:1;
+        }
+
+        .card-content b {
+            display:block;
+            margin-bottom:5px;
+            color:#333;
+        }
+
+        .card-content p {
+            margin:2px 0;
+            color:#555;
+            font-size:14px;
+        }
+
+        .card button {
+            margin:10px;
+            padding:8px;
+            background:#333;
+            color:white;
+            border:none;
+            border-radius:5px;
+            cursor:pointer;
+        }
+
+        .card button:hover {
+            background:#555;
+        }
+
+        /* CART BUTTON */
+        .cart-btn{
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px;
+            background: black;
+            color: white;
+            border-radius: 50%;
+            cursor:pointer;
+            font-size:20px;
+        }
+
+    </style>
+</head>
+<body>
+
+<h2>Tour Places</h2>
+
+<div id="list"></div>
+
+<button class="cart-btn" onclick="goCart()">Select Place</button>
+
+<script>
+
+    const base="http://localhost:8080/api/locations";
+    const token = localStorage.getItem("token");
+
+    let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+
+    const listDiv = document.getElementById("list");
+
+    // LOAD LOCATIONS
+    fetch(base,{
+        headers:{
+            "Authorization":"Bearer "+token
+        }
+    })
+        .then(res=>res.json())
+        .then(data=>{
+            listDiv.innerHTML = "";
+
+            data.forEach(p=>{
+                const div = document.createElement("div");
+                div.className = "card";
+
+                div.innerHTML = `
+                <img src="${p.imageUrl || 'https://via.placeholder.com/250x150'}">
+                <div class="card-content">
+                    <b>Name: ${p.name}</b>
+                    <p>District : ${p.district}</p>
+                    <p>Description : ${p.description || ''}</p>
+                </div>
+                <button onclick="event.stopPropagation(); addToCart(${p.id}, '${p.name}')">+</button>
+            `;
+
+                div.onclick = () => addToCart(p.id, p.name);
+                listDiv.appendChild(div);
+            });
+        });
+
+    // ADD TO CART
+    function addToCart(id,name){
+        const exists = cart.find(item => item.id === id);
+
+        if(exists){
+            alert("Already added ⚠️");
+            return;
+        }
+
+        cart.push({id,name});
+        localStorage.setItem("cart",JSON.stringify(cart));
+
+        alert(name + " Added to Cart ✅");
+    }
+
+    function goCart(){
+        window.location.href="cart.html";
+    }
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Uber Style System</title>
+    <style>
+        /*body { font-family: Arial; }*/
+        /*input, button { margin: 5px; padding: 5px; }*/
+        /*.card {*/
+        /*    border:1px solid gray;*/
+        /*    padding:8px;*/
+        /*    margin:5px;*/
+        /*}*/
+        body {
+            font-family: Arial;
+            margin:0;
+            background:#e6e6e6;
+        }
+
+        /* HEADINGS */
+        h2{
+            background:#555454;
+            color:rgb(255, 255, 255);
+            padding:12px 20px;
+            margin:0;
+            text-align: center;
+
+        }
+
+        h3{
+            color:#444;
+            margin-top:20px;
+            text-align: center;
+        }
+
+        /* INPUT + BUTTON */
+        input {
+            margin:5px;
+            padding:10px;
+            border-radius:6px;
+            border:1px solid #ccc;
+            width:180px;
+        }
+
+        button {
+            margin:5px;
+            padding:10px 15px;
+            border:none;
+            border-radius:6px;
+            background:#777;
+            color:white;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        button:hover{
+            background:#555;
+        }
+
+        /* SECTIONS */
+        body > h2:nth-of-type(1),
+        #map,
+        #vehicleResults {
+            margin:15px;
+        }
+
+        /* USER AREA */
+        #map{
+            border-radius:10px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        /* PROVIDER AREA */
+        #rideRequests{
+            margin:15px;
+        }
+
+        /* CARDS */
+        .card {
+            background:white;
+            padding:12px;
+            margin:10px 15px;
+            border-radius:10px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.2);
+            transition:0.3s;
+        }
+
+        .card:hover{
+            transform:scale(1.02);
+        }
+
+        /* DIVIDERS */
+        hr{
+            border:none;
+            height:2px;
+            background:#999;
+            margin:25px 0;
+        }
+
+        /* BUTTON INSIDE MAP POPUP */
+        button[style*="green"]{
+            background:#28a745 !important;
+        }
+
+        button[style*="green"]:hover{
+            background:#218838 !important;
+        }
+    </style>
+</head>
+<body>
+
+
+
+<h2>Nearby Vehicles</h2>
+<input id="userLat" placeholder="Latitude">
+<input id="userLng" placeholder="Longitude">
+
+<button onclick="getMyLocation()"> My Location</button>
+<button onclick="startSearch()">Search</button>
+
+<hr>
+
+
+<div id="vehicleResults"></div>
+
+<h3>Map</h3>
+<div id="map" style="height:450px;"></div>
+
+<h2>Add Vehicle (PROVIDER)</h2>
+<input id="vehicleNumber" placeholder="Vehicle Number">
+<input id="vehicleType" placeholder="car / bike / van">
+<button onclick="addVehicle()">Add Vehicle</button>
+
+<hr>
+
+<h3>Ride Requests (PROVIDER)</h3>
+<div id="rideRequests"></div>
+
+<hr>
+
+<script>
+    const token = localStorage.getItem("token");
+    let role = localStorage.getItem("role");
+
+    if(role){
+        role = role.replace("ROLE_","").toUpperCase();
+    }
+
+    const base = "http://localhost:8080/api/v1";
+
+    const icons = {
+        car: "https://cdn-icons-png.flaticon.com/512/744/744465.png",
+        bike: "https://cdn-icons-png.flaticon.com/512/2972/2972185.png",
+        van: "https://cdn-icons-png.flaticon.com/512/1995/1995470.png"
+    };
+
+    let map;
+    let vehicleMarkers = {};
+    let userMarker;
+    let directionsService;
+    let directionsRenderer;
+
+    // INIT MAP
+    function initMap(){
+        map = new google.maps.Map(document.getElementById("map"),{
+            zoom:10,
+            center:{lat:6.9271,lng:79.8612}
+        });
+
+        directionsService = new google.maps.DirectionsService();
+        directionsRenderer = new google.maps.DirectionsRenderer();
+        directionsRenderer.setMap(map);
+    }
+
+    // AUTO USER TRACK
+    window.onload = ()=>{
+        navigator.geolocation.getCurrentPosition(pos=>{
+            userLat.value = pos.coords.latitude;
+            userLng.value = pos.coords.longitude;
+
+            startUserTracking();
+        });
+    };
+
+    // LIVE USER
+    function startUserTracking(){
+        setInterval(()=>{
+            navigator.geolocation.getCurrentPosition(pos=>{
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+
+                userLat.value = lat;
+                userLng.value = lng;
+
+                if(userMarker){
+                    userMarker.setPosition({lat,lng});
+                }else{
+                    userMarker = new google.maps.Marker({
+                        position:{lat,lng},
+                        map,
+                        label:"YOU"
+                    });
+                }
+            });
+        },3000);
+    }
+
+    // GET LOCATION
+    function getMyLocation(){
+        navigator.geolocation.getCurrentPosition(pos=>{
+            userLat.value = pos.coords.latitude;
+            userLng.value = pos.coords.longitude;
+        });
+    }
+
+    // ADD VEHICLE
+    function addVehicle(){
+        navigator.geolocation.getCurrentPosition(pos=>{
+            fetch(base+"/vehicles",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json",
+                    "Authorization":"Bearer "+token
+                },
+                body:JSON.stringify({
+                    vehicleNumber:vehicleNumber.value,
+                    type:vehicleType.value,
+                    latitude:pos.coords.latitude,
+                    longitude:pos.coords.longitude
+                })
+            }).then(()=>{
+                alert("Vehicle Added ");
+                startProviderTracking();
+            });
+        });
+    }
+
+    // PROVIDER TRACKING
+    function startProviderTracking(){
+        setInterval(()=>{
+            navigator.geolocation.getCurrentPosition(pos=>{
+                fetch(base+"/vehicles/update-location",{
+                    method:"PUT",
+                    headers:{
+                        "Content-Type":"application/json",
+                        "Authorization":"Bearer "+token
+                    },
+                    body:JSON.stringify({
+                        latitude:pos.coords.latitude,
+                        longitude:pos.coords.longitude
+                    })
+                });
+            });
+        },5000);
+    }
+
+    // SEARCH
+    function startSearch(){
+        loadData();
+        setInterval(loadData,5000);
+    }
+
+    // LOAD VEHICLES
+    function loadData(){
+        const lat = parseFloat(userLat.value);
+        const lng = parseFloat(userLng.value);
+
+        fetch(`${base}/vehicles/nearby?lat=${lat}&lng=${lng}`,{
+            headers:{ "Authorization":"Bearer "+token }
+        })
+            .then(res=>res.json())
+            .then(data=>{
+                updateMarkers(data,lat,lng);
+            });
+    }
+
+    // DISTANCE
+    function calculateDistance(lat1, lon1, lat2, lon2){
+        const R=6371;
+        const dLat=(lat2-lat1)*Math.PI/180;
+        const dLon=(lon2-lon1)*Math.PI/180;
+
+        const a =
+            Math.sin(dLat/2)**2 +
+            Math.cos(lat1*Math.PI/180)*
+            Math.cos(lat2*Math.PI/180)*
+            Math.sin(dLon/2)**2;
+
+        return R*(2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)));
+    }
+
+    // MARKERS
+    function updateMarkers(vehicles, userLat, userLng){
+
+        if(!userMarker){
+            userMarker = new google.maps.Marker({
+                position:{lat:userLat,lng:userLng},
+                map,
+                label:"YOU"
+            });
+        }else{
+            userMarker.setPosition({lat:userLat,lng:userLng});
+        }
+
+        const infoWindow = new google.maps.InfoWindow();
+
+        vehicles.forEach(v=>{
+
+            let iconUrl = icons[v.type?.toLowerCase()] || icons.car;
+
+            let distance = calculateDistance(userLat,userLng,v.latitude,v.longitude);
+
+            let distanceText = distance < 1 ?
+                (distance*1000).toFixed(0)+" m" :
+                distance.toFixed(2)+" km";
+
+            if(vehicleMarkers[v.id]){
+                vehicleMarkers[v.id].setPosition({lat:v.latitude,lng:v.longitude});
+            }else{
+
+                const marker = new google.maps.Marker({
+                    position:{lat:v.latitude,lng:v.longitude},
+                    map,
+                    icon:{
+                        url:iconUrl,
+                        scaledSize:new google.maps.Size(40,40)
+                    }
+                });
+
+                marker.addListener("click",()=>{
+
+                    let button = "";
+
+                    if(role && role.includes("USER")){
+                        button = `
+                        <button onclick="requestRide(${v.id})"
+                        style="background:green;color:white;border:none;padding:5px">
+                         Request Ride
+                        </button>
+                    `;
+                    }
+
+                    const content = `
+                    <div>
+                        <b>${v.vehicleNumber}</b><br>
+                        Type: ${v.type}<br>
+                        Driver: ${v.driver?.username || "N/A"}<br>
+                        Distance: ${distanceText}<br><br>
+<!--                        ${button}-->
+<button onclick="requestRide(${v.id})"
+                        style="background:green;color:white;border:none;padding:5px">
+                         Request Ride
+                        </button>
+                    </div>
+                `;
+
+                    infoWindow.setContent(content);
+                    infoWindow.open(map,marker);
+                });
+
+                vehicleMarkers[v.id] = marker;
+            }
+        });
+    }
+
+    // REQUEST RIDE
+    function requestRide(vehicleId){
+        fetch(base+"/rides/request?vehicleId="+vehicleId+
+            "&lat="+userLat.value+"&lng="+userLng.value,{
+            method:"POST",
+            headers:{
+                "Authorization":"Bearer "+token
+            }
+        })
+            .then(res=>res.json())
+            .then(()=>{
+                alert("Ride Requested ");
+            });
+    }
+
+    // PROVIDER VIEW REQUESTS
+    // function loadRequests(){
+    //     if(!role.includes("PROVIDER")) return;
+    //
+    //     fetch(base+"/rides/requests",{
+    //         headers:{ "Authorization":"Bearer "+token }
+    //     })
+    //         .then(res=>res.json())
+    //         .then(data=>{
+    //
+    //             rideRequests.innerHTML="";
+    //
+    //             data.forEach(r=>{
+    //                 rideRequests.innerHTML += `
+    //         <div class="card">
+    //             Ride ID: ${r.id}<br>
+    //             User: ${r.user.username}<br>
+    //             Pickup: ${r.pickupLat}, ${r.pickupLng}<br>
+    //             <button onclick="acceptRide(${r.id})">
+    //                 Accept
+    //             </button>
+    //         </div>`;
+    //             });
+    //         });
+    // }
+    function loadRequests(){
+        fetch("http://localhost:8080/api/v1/rides/requests",{
+            headers:{ "Authorization":"Bearer "+token }
+        })
+            .then(res=>res.json())
+            .then(data=>{
+
+                rideRequests.innerHTML="";
+
+                data.forEach(r=>{
+                    rideRequests.innerHTML += `
+            <div class="card">
+                Ride ID: ${r.id}<br>
+                User: ${r.user.username}<br>
+                Location: ${r.userLat}, ${r.userLng}<br>
+                <button onclick="acceptRide(${r.id})">Accept</button>
+            </div>`;
+                });
+            });
+    }
+
+    // ACCEPT
+    function acceptRide(rideId){
+
+        fetch(base+"/rides/accept?rideId="+rideId,{
+            method:"PUT",
+            headers:{ "Authorization":"Bearer "+token }
+        })
+            .then(()=>alert("Ride Accepted "));
+    }
+
+    // AUTO REFRESH REQUESTS
+    setInterval(loadRequests,5000);
+
+
+
+    // function acceptRide(rideId){
+    //     console.log("Accept clicked:", rideId);
+    //
+    //     fetch(base + "/rides/accept?rideId=" + rideId,{
+    //         method:"PUT",
+    //         headers:{
+    //             "Authorization":"Bearer " + token
+    //         }
+    //     })
+    //         .then(res=>{
+    //             console.log("Response Status:", res.status);
+    //
+    //             if(!res.ok){
+    //                 throw new Error("Request Failed");
+    //             }
+    //
+    //             return res.json(); // 🔥 MUST
+    //         })
+    //         .then(data=>{
+    //             console.log("Updated Ride:", data);
+    //
+    //             alert("Ride Accepted ✅");
+    //
+    //             // 🔄 UI refresh
+    //             loadRequests();
+    //         })
+    //         .catch(err=>{
+    //             console.error("ERROR:", err);
+    //             alert("Accept Failed ❌");
+    //         });
+    // }
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBDFfiXFeKcF2nARdPNGOlp1IP8GQSKVis&callback=initMap" async defer></script>
+
+</body>
+</html>
